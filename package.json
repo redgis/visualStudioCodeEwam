@@ -1,0 +1,49 @@
+{
+  "name": "ewamvscadaptor",
+  "displayName": "eWamVSCAdaptor",
+  "description": "e-Wam Visual Studio Adaptor",
+  "version": "0.0.1",
+  "publisher": "mphasiswyde",
+  "engines": {
+    "vscode": "^0.10.1"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:extension.sayHello",
+    "onCommand:extension.checkIn"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.sayHello",
+        "title": "eWam"
+      },
+      {
+        "command": "extension.checkIn",
+        "title": "eWam checkIn"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "eWam configuration",
+      "properties": {
+        "ewam.url": {
+          "type": "string",
+          "default": "http://localhost:8082",
+          "description": "End point of your eWam as a service"
+        }
+      }
+  }
+    
+  },
+  "devDependencies": {
+    "vscode": "0.10.x"
+  },
+  "dependencies": {
+    "axios": "^0.9.1",
+    "fs": "0.0.2"
+  }
+}
