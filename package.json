@@ -26,6 +26,17 @@
         "title": "eWam checkIn"
       }
     ],
+    "languages": [{
+			"id": "gold",
+			"aliases": ["Gold", "gold"],
+			"extensions": [".gold",".god"],
+			"configuration": "./gold.configuration.json"
+		}],
+		"grammars": [{
+			"language": "gold",
+			"scopeName": "source.gold",
+			"path": "./syntaxes/gold.tmLanguage"
+		}],
     "configuration": {
       "type": "object",
       "title": "eWam configuration",
