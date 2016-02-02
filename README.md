@@ -12,7 +12,7 @@ This plugin leverage the eWam API to let you edit eWam Code With Visual Studio C
 * Clone this repo
 * Run `npm install`
 * Open the folder
-* Run F5
+* click on F5
 
 ## Features
 [X] Syntax highlightings  
