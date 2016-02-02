@@ -5,8 +5,7 @@ This plugin leverage the eWam API to let you edit eWam Code With Visual Studio C
 
 ## Requirements
 * Visual Studio Code 10.6
-* ModelAPI v1
-* Node
+* [ModelAPI v1](https://github.com/MphasisWyde/WydeActiveModelerAPI)
 
 ## Installation
 * Clone this repo
