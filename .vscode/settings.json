@@ -1,3 +1,12 @@
 {
-	"endPoint":"8080"
+	"ewam.url":"http://localhost:8082",
+    "javascript.suggest.useCodeSnippetsOnMethodSuggest": true,
+    	"javascript.suggest.alwaysAllWords": true,
+        "eslint.enable": false
+        ,
+        "javascript.validate.enable": false,
+
+	   "javascript.validate.semanticValidation": false,
+
+		"javascript.validate.syntaxValidation": false
 }
