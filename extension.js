@@ -4,6 +4,8 @@ var vscode = require('vscode');
 var axios = require('axios');
 var fs = require('fs');
 
+const EXTENSION = '.js';
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -14,19 +16,19 @@ function openClass(name) {
     if (!editor) {
         return; // No open text editor
     }*/
-    var config= vscode.workspace.getConfiguration('ewam');
-    axios.get(config.url+'/api/rest/classOrModule/' + name)
+    var config = vscode.workspace.getConfiguration('ewam');
+    axios.get(config.url + '/api/rest/classOrModule/' + name)
         .then(function (response) {
-          
+            vscode.window.setStatusBarMessage('eWam Parsing Ok');
             /* editor.edit(editBuilder => { 
                  
                  editBuilder.replace(editor.selection, response.data.content);
              
                  }
              );*/
-                     
+
             console.log(vscode.workspace.rootPath);
-            var fileName = vscode.workspace.rootPath + '\\' + name + '.gold';
+            var fileName = vscode.workspace.rootPath + '\\' + name + EXTENSION;
 
             fs.writeFile(fileName, response.data.content, function (err) {
 
@@ -37,13 +39,13 @@ function openClass(name) {
                 configDocument.then(function (document) {
                     vscode.window.showTextDocument(document);
                 });
-               const spawn = require('child_process').spawn;
-               const ls = spawn('git', ['add', fileName], {cwd:vscode.workspace.rootPath, env: process.env});
-              
+                const spawn = require('child_process').spawn;
+                const ls = spawn('git', ['add', fileName], { cwd: vscode.workspace.rootPath, env: process.env });
+
                 ls.stdout.on('data', (data) => {
-                     console.log(`stdout: ${data}`);
+                    console.log(`stdout: ${data}`);
                 });
-                
+
 
             });
 
@@ -54,27 +56,39 @@ function openClass(name) {
 
 }
 
+function GenericPostOperation(name, op) {
+
+    var config = vscode.workspace.getConfiguration('ewam');
+    axios.post(config.url + '/api/rest/classOrModule/' + name + '/' + op)
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (response) {
+            console.log(response);
+        });
+}
+
 function checkInClass(name) {
     /*var editor = vscode.window.activeTextEditor;
     if (!editor) {
         return; // No open text editor
     }*/
-   var config= vscode.workspace.getConfiguration('ewam');
+    var config = vscode.workspace.getConfiguration('ewam');
 
-    axios.post(config.url+'/api/rest/classOrModule/'+name+'/checkIn')
+    axios.post(config.url + '/api/rest/classOrModule/' + name + '/checkIn')
         .then(function (response) {
-                           
+
             console.log(vscode.workspace.rootPath);
-            var fileName = vscode.workspace.rootPath + '\\' + name + '.gold';
-                               
-               const spawn = require('child_process').spawn;
-               const ls = spawn('git', ['commit', fileName, '-m', '"Message"'],
-                {cwd:vscode.workspace.rootPath, env: process.env});
-              
-                ls.stdout.on('data', (data) => {
-                     console.log(`stdout: ${data}`);
-                });            
-           
+            var fileName = vscode.workspace.rootPath + '\\' + name + EXTENSION;
+
+            const spawn = require('child_process').spawn;
+            const ls = spawn('git', ['commit', fileName, '-m', '"Message"'],
+                { cwd: vscode.workspace.rootPath, env: process.env });
+
+            ls.stdout.on('data', (data) => {
+                console.log(`stdout: ${data}`);
+            });
+
         })
         .catch(function (response) {
             console.log(response);
@@ -82,7 +96,83 @@ function checkInClass(name) {
 
 }
 
+function getOpenClassName() {
+    var editor = vscode.window.activeTextEditor;
 
+    if (!editor) {
+        // return; // No open text editor
+    } else {
+        var fpath = editor.document.fileName.replace(/^.*[\\\/]/, '');
+        return fpath.substring(fpath.lastIndexOf('/') + 1, fpath.lastIndexOf('.'));
+    }
+
+}
+
+function parse() {
+    var editor = vscode.window.activeTextEditor;
+    var className = getOpenClassName();
+    var config = vscode.workspace.getConfiguration('ewam');
+
+    if (!editor) {
+        // return; // No open text editor
+    } else {
+        var body = editor.document.getText();
+        axios.post(config.url + '/api/rest/classOrModule/' + className + '/parse',
+            { 
+              name:className,
+              ancestor:'tt',
+              content: body
+             })
+            .then(function (response) {
+                
+                editor.edit(
+                    editBuilder => 
+                    { 
+                         var start = new vscode.Position(0, 0);
+                        var lastLine = vscode.window.activeTextEditor.document.lineCount - 1;
+                        var end = vscode.window.activeTextEditor.document.lineAt(lastLine).range.end;
+
+                        var range = new vscode.Range(start, end);
+                        
+                        editBuilder.replace(range, response.data.content)
+                    }
+                    );
+                console.log(response);
+            })
+            .catch(function (response) {
+                console.log(response);
+            });
+
+    }
+
+}
+
+
+function getScenario(classname, callBack) {
+    var config = vscode.workspace.getConfiguration('ewam');
+    axios.get(config.url + '/api/rest/classOrModule/' + classname + '/scenarios')
+        .then(function (response) {
+            vscode.window.showQuickPick(response.data)
+                .then((selection) => {
+                    callBack(classname, selection)
+                });
+        })
+        .catch(function (response) {
+            console.log(response);
+        });
+}
+
+function editScenario(classname, scenarioName) {
+
+    var config = vscode.workspace.getConfiguration('ewam');
+    axios.get(config.url + '/api/rest/classOrModule/' + classname + '/scenarios/' + scenarioName)
+        .then(function (response) {
+
+        })
+        .catch(function (response) {
+            console.log(response);
+        });
+}
 
 /**
  * Search for a class	
@@ -92,20 +182,12 @@ function checkInClass(name) {
 		 * when the message was dismissed.
 		 */
 function searchClass(callBackFunc) {
-   var editor = vscode.window.activeTextEditor;
-   var name='';
- 
-   if (!editor) {
-       // return; // No open text editor
-    } else {
-         var fpath=editor.document.fileName.replace(/^.*[\\\/]/, '');
-         name = fpath.substring(fpath.lastIndexOf('/')+1, fpath.lastIndexOf('.'));
-    }
-    var config= vscode.workspace.getConfiguration('ewam');
 
-     vscode.window.showInputBox({ prompt: 'Class name or criteria', value:name  })
-            .then(criteria => {    
-            axios.get(config.url+'/api/rest/searchEntities',
+    var config = vscode.workspace.getConfiguration('ewam');
+
+    vscode.window.showInputBox({ prompt: 'Class name or criteria', value: '' })
+        .then(criteria => {
+            axios.get(config.url + '/api/rest/searchEntities',
                 {
                     params: {
                         q: criteria
@@ -121,8 +203,8 @@ function searchClass(callBackFunc) {
                 .catch(function (response) {
                     console.log(response);
                 });
-           }
-        );
+        }
+            );
 }
 
 
@@ -130,7 +212,7 @@ function activate(context) {
 
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "ewamvscadaptor" is now active!');
+    console.log('"ewamvscadaptor" is now active');
 
     var myOutputChannel = vscode.window.createOutputChannel('eWam');
     myOutputChannel.append('eWam plugin started');
@@ -139,17 +221,42 @@ function activate(context) {
         vscode.window.showErrorMessage("eWam plugin: Cannot work without opened folder");
         return;
     }
-    
- 
-    var disposable = vscode.commands.registerCommand('extension.sayHello', function () {
-                var name = searchClass(openClass);
+
+    var name = '';
+    var disposable = vscode.commands.registerCommand('ewam.openEntity', function () {
+        name = searchClass(openClass);
+    });
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('ewam.checkIn', function () {
+        name = checkInClass(getOpenClassName());
+    });
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('ewam.checkOut', function () {
+        GenericPostOperation(getOpenClassName(), 'checkOut');
+    });
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('ewam.parse', function () {
+        parse();
+    });
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('ewam.reimplem', function () {
+        GenericPostOperation(getOpenClassName(), 'ManageReimplem');
+    });
+    context.subscriptions.push(disposable);
+
+
+
+    disposable = vscode.commands.registerCommand('ewam.scenario', function () {
+        getScenario(getOpenClassName(), editScenario);
     });
     context.subscriptions.push(disposable);
     
-    disposable = vscode.commands.registerCommand('extension.checkIn', function () {
-                var name = searchClass(checkInClass);
-    });
-    context.subscriptions.push(disposable);
+    //disposable = vscode.window.setStatusBarMessage('Ready');
+    //context.subscriptions.push(disposable);
 }
 exports.activate = activate;
 
