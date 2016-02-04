@@ -3,9 +3,7 @@
 This repo is a work in progress as Visual Studio Code is still in Beta by Microsoft.
 This plugin leverage the eWam API to let you edit eWam Code With Visual Studio Code.
 
-
-![eWam VSC](eWam.gif)
-
+Parsing, checkin and Scenario edition demo
 ![eWam VSC](eWam3.gif)
 
 ## Requirements
@@ -19,8 +17,16 @@ This plugin leverage the eWam API to let you edit eWam Code With Visual Studio C
 * click on F5
 
 ## Features
-[X] Syntax highlightings  
-[X] Open a class  
-[X] Checkin a class  
-[ ] Code completion  
+[X] Syntax highlightings (with typescript definitions)  
+[X] Watches (with typescript definitions)  
+[X] Open a class, `Alt+o`  
+[X] Checkin a class `Alt+i` 
+[X] Open scenarios `Alt+s` 
+[X] Parse `Alt+p` 
+[X] Code completion  
+
+## Additional demos
+Code completion demo
+![eWam VSC](eWam.gif)
+
 
