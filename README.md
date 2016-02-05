@@ -3,8 +3,9 @@
 This repo is a work in progress as Visual Studio Code is still in Beta by Microsoft.
 This plugin leverage the eWam API to let you edit eWam Code With Visual Studio Code.
 
+## Demo
 Parsing, checkin and Scenario edition demo
-![eWam VSC](eWam3.gif)
+![eWam VSC](eWam4.gif)
 
 ## Requirements
 * Visual Studio Code 10.6
@@ -14,19 +15,27 @@ Parsing, checkin and Scenario edition demo
 * Clone this repo
 * Run `npm install`
 * Open the folder
-* click on F5
+
+## Get up and running straight away (Debug mode)
+* press `F5` to open a new window with your extension loaded
+* run your command from the command palette by pressing (`Ctrl+Shift+P` or `F1`) and typing `ewam`
+* set breakpoints in `extension.ts` to debug the extension
+* find output from your extension in the debug console
 
 ## Features
-[X] Syntax highlightings (with typescript definitions)  
-[X] Watches (with typescript definitions)  
-[X] Open a class, `Alt+o`  
-[X] Checkin a class `Alt+i` 
-[X] Open scenarios `Alt+s` 
-[X] Parse `Alt+p` 
-[X] Code completion  
+- [x] Syntax highlightings (with typescript definitions)  
+- [x] Watches (with typescript definitions)  
+- [x] Open a class, `Alt+o`  
+- [x] Checkin a class `Alt+i` 
+- [x] Open scenarios `Alt+s` 
+- [x] Parse `Alt+p` 
+- [x] Code completion  
 
 ## Additional demos
-Code completion demo
+### Code completion
 ![eWam VSC](eWam.gif)
+
+
+
 
 

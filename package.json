@@ -1,80 +1,104 @@
 {
-  "name": "ewamvscadaptor",
-  "displayName": "eWamVSCAdaptor",
-  "description": "e-Wam Visual Studio Adaptor",
-  "version": "0.0.2",
-  "publisher": "mphasiswyde",
-  "engines": {
-    "vscode": "^0.10.1"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onCommand:ewam.openEntity",
-    "onCommand:ewam.checkIn",
-    "onCommand:ewam.checkOut",
-    "onCommand:ewam.parse",
-    "onCommand:ewam.reimplem",
-    "onCommand:ewam.scenario"
-  ],
-  "main": "./extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "ewam.openEntity",
-        "title": "eWam Open Entity"
-      },
-      {
-        "command": "ewam.checkIn",
-        "title": "eWam Check In"
-      },
-      {
-        "command": "ewam.checkOut",
-        "title": "eWam Check Out"
-      },
-      {
-        "command": "ewam.parse",
-        "title": "eWam Parse"
-      },
-      {
-        "command": "ewam.reimplem",
-        "title": "eWam Reimplem"
-      },
-      {
-        "command": "ewam.scenario",
-        "title": "eWam Scenario"
-      }
+    "name": "ewamvscadaptor",
+    "displayName": "eWamVSCAdaptor",
+    "description": "e-Wam Visual Studio Adaptor",
+    "version": "0.0.2",
+    "publisher": "mphasiswyde",
+    "engines": {
+        "vscode": "^0.10.1"
+    },
+    "categories": [
+        "Other"
     ],
-    "languages": [{
-			"id": "gold",
-			"aliases": ["Gold", "gold"],
-			"extensions": [".gold",".god",".js"],
-			"configuration": "./gold.configuration.json"
-		}],
-		"grammars": [{
-			"language": "gold",
-			"scopeName": "source.gold",
-			"path": "./syntaxes/gold.tmLanguage"
-		}],
-    "configuration": {
-      "type": "object",
-      "title": "eWam configuration",
-      "properties": {
-        "ewam.url": {
-          "type": "string",
-          "default": "http://localhost:8082",
-          "description": "End point of your eWam as a service"
+    "activationEvents": [
+        "onCommand:ewam.openEntity",
+        "onCommand:ewam.checkIn",
+        "onCommand:ewam.checkOut",
+        "onCommand:ewam.parse",
+        "onCommand:ewam.reimplem",
+        "onCommand:ewam.scenario"
+    ],
+    "main": "./extension",
+    "contributes": {
+        "snippets": [
+            {
+                "language": "gold",
+                "path": "./snippets/snippets.json"
+            }
+        ],
+        "keybindings": [
+			{
+				"command": "ewam.parse",
+				"key": "F7",
+				"mac": "F7",
+				"when": "editorTextFocus"
+			}
+		],
+        "commands": [
+            {
+                "command": "ewam.openEntity",
+                "title": "eWam Open Entity"
+            },
+            {
+                "command": "ewam.checkIn",
+                "title": "eWam Check In"
+            },
+            {
+                "command": "ewam.checkOut",
+                "title": "eWam Check Out"
+            },
+            {
+                "command": "ewam.parse",
+                "title": "eWam Parse"
+            },
+            {
+                "command": "ewam.reimplem",
+                "title": "eWam Reimplem"
+            },
+            {
+                "command": "ewam.scenario",
+                "title": "eWam Scenario"
+            }
+        ],
+        "languages": [
+            {
+                "id": "gold",
+                "aliases": [
+                    "Gold",
+                    "gold"
+                ],
+                "extensions": [
+                    ".gold",
+                    ".god",
+                    ".js"
+                ],
+                "configuration": "./gold.configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "gold",
+                "scopeName": "source.gold",
+                "path": "./syntaxes/gold.tmLanguage"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "eWam configuration",
+            "properties": {
+                "ewam.url": {
+                    "type": "string",
+                    "default": "http://localhost:8082",
+                    "description": "End point of your eWam as a service"
+                }
+            }
         }
-      }
-  }
-    
-  },
-  "devDependencies": {
-    "vscode": "0.10.x"
-  },
-  "dependencies": {
-    "axios": "^0.9.1",
-    "fs": "0.0.2"
-  }
+    },
+    "devDependencies": {
+        "vscode": "0.10.x"
+    },
+    "dependencies": {
+        "axios": "^0.9.1",
+        "fs": "0.0.2"
+    }
 }

@@ -118,22 +118,21 @@ function parse() {
     } else {
         var body = editor.document.getText();
         axios.post(config.url + '/api/rest/classOrModule/' + className + '/parse',
-            { 
-              name:className,
-              ancestor:'tt',
-              content: body
-             })
+            {
+                name: className,
+                ancestor: 'tt',
+                content: body
+            })
             .then(function (response) {
-                
+
                 editor.edit(
-                    editBuilder => 
-                    { 
-                         var start = new vscode.Position(0, 0);
+                    editBuilder => {
+                        var start = new vscode.Position(0, 0);
                         var lastLine = vscode.window.activeTextEditor.document.lineCount - 1;
                         var end = vscode.window.activeTextEditor.document.lineAt(lastLine).range.end;
 
                         var range = new vscode.Range(start, end);
-                        
+
                         editBuilder.replace(range, response.data.content)
                     }
                     );
@@ -141,6 +140,10 @@ function parse() {
             })
             .catch(function (response) {
                 console.log(response);
+                vscode.window.setStatusBarMessage('Parsing Errors');
+                for (var error of response.data) {
+                    vscode.window.showErrorMessage(error.msg + error.line);
+                }
             });
 
     }
