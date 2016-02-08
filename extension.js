@@ -108,7 +108,7 @@ function getOpenClassName() {
 
 }
 
-function parse() {
+function parse(context, parsingErrorDecorationType) {
     var editor = vscode.window.activeTextEditor;
     var className = getOpenClassName();
     var config = vscode.workspace.getConfiguration('ewam');
@@ -120,34 +120,52 @@ function parse() {
         axios.post(config.url + '/api/rest/classOrModule/' + className + '/parse',
             {
                 name: className,
-                ancestor: 'tt',
+                ancestor: '',
                 content: body
             })
             .then(function (response) {
-
                 editor.edit(
                     editBuilder => {
                         var start = new vscode.Position(0, 0);
                         var lastLine = vscode.window.activeTextEditor.document.lineCount - 1;
                         var end = vscode.window.activeTextEditor.document.lineAt(lastLine).range.end;
-
                         var range = new vscode.Range(start, end);
-
                         editBuilder.replace(range, response.data.content)
-                    }
-                    );
+                        setDeco(context, [], parsingErrorDecorationType);
+                    });
                 console.log(response);
+                vscode.window.setStatusBarMessage('Parsing OK');
+
             })
             .catch(function (response) {
                 console.log(response);
                 vscode.window.setStatusBarMessage('Parsing Errors');
-                for (var error of response.data) {
-                    vscode.window.showErrorMessage(error.msg + error.line);
-                }
+                //for (var error of response.data) {
+                //    vscode.window.showErrorMessage(error.msg + error.line);
+                //}
+                vscode.window.showErrorMessage('Parsing error(s)');
+                setDeco(context, response.data, parsingErrorDecorationType);
             });
+    }
+}
 
+
+function setDeco(context, errors, parsingErrorDecorationType) {
+    var decos = [];
+    var activeEditor = vscode.window.activeTextEditor;
+    for (var error of errors) {
+        var start = new vscode.Position(error.line, 0);
+        var doc = activeEditor.document;
+        var line = doc.lineAt(error.line);
+        var l = line.text.length;
+        var end = new vscode.Position(error.line, l);
+
+        var r = new vscode.Range(start, end);
+        decos.push({ range: r, hoverMessage: error.msg });
     }
 
+
+    activeEditor.setDecorations(parsingErrorDecorationType, decos);
 }
 
 
@@ -187,8 +205,17 @@ function editScenario(classname, scenarioName) {
 function searchClass(callBackFunc) {
 
     var config = vscode.workspace.getConfiguration('ewam');
+    var editor = vscode.window.activeTextEditor;
+    var text = '';
+    if (!editor) {
+        text='';
+    } else {
+        var selection = editor.selection;
+        text = editor.document.getText(selection);
+    }
 
-    vscode.window.showInputBox({ prompt: 'Class name or criteria', value: '' })
+
+    vscode.window.showInputBox({ prompt: 'Class name or criteria', value: text })
         .then(criteria => {
             axios.get(config.url + '/api/rest/searchEntities',
                 {
@@ -217,6 +244,20 @@ function activate(context) {
     // This line of code will only be executed once when your extension is activated
     console.log('"ewamvscadaptor" is now active');
 
+    var pathIcon = context.asAbsolutePath('images\\dot.png');
+    var parsingErrorDecorationType = vscode.window.createTextEditorDecorationType({
+        gutterIconPath: pathIcon,
+        /*isWholeLine: true,
+        color: 'red',
+        borderColor:'red',
+        borderWidth:'1px',
+        outlineColor:'red',
+        borderStyle: 'solid',
+		overviewRulerColor: 'blue',*/
+        backgroundColor: 'rgba(128,64,64,0.5)',
+        overviewRulerLane: vscode.OverviewRulerLane.Right
+    });
+
     var myOutputChannel = vscode.window.createOutputChannel('eWam');
     myOutputChannel.append('eWam plugin started');
 
@@ -227,6 +268,7 @@ function activate(context) {
 
     var name = '';
     var disposable = vscode.commands.registerCommand('ewam.openEntity', function () {
+        //          setDeco(context);
         name = searchClass(openClass);
     });
     context.subscriptions.push(disposable);
@@ -241,8 +283,13 @@ function activate(context) {
     });
     context.subscriptions.push(disposable);
 
+    disposable = vscode.commands.registerCommand('ewam.deliver', function () {
+        GenericPostOperation(getOpenClassName(), 'deliver');
+    });
+    context.subscriptions.push(disposable);
+
     disposable = vscode.commands.registerCommand('ewam.parse', function () {
-        parse();
+        parse(context, parsingErrorDecorationType);
     });
     context.subscriptions.push(disposable);
 

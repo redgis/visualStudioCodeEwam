@@ -16,7 +16,8 @@
         "onCommand:ewam.checkOut",
         "onCommand:ewam.parse",
         "onCommand:ewam.reimplem",
-        "onCommand:ewam.scenario"
+        "onCommand:ewam.scenario",
+        "onCommand:ewam.deliver"
     ],
     "main": "./extension",
     "contributes": {
@@ -31,6 +32,42 @@
 				"command": "ewam.parse",
 				"key": "F7",
 				"mac": "F7",
+				"when": "editorTextFocus"
+			},
+            {
+				"command": "ewam.scenario",
+				"key": "alt+s",
+				"mac": "alt+s",
+				"when": "editorTextFocus"
+			},
+            {
+				"command": "ewam.checkIn",
+				"key": "alt+i",
+				"mac": "alt+i",
+				"when": "editorTextFocus"
+			},
+            {
+				"command": "ewam.checkOut",
+				"key": "alt+c",
+				"mac": "alt+c",
+				"when": "editorTextFocus"
+			},
+            {
+				"command": "ewam.openEntity",
+				"key": "alt+o",
+				"mac": "alt+o",
+				"when": "editorTextFocus"
+			},
+            {
+				"command": "ewam.reimplem",
+				"key": "alt+r",
+				"mac": "alt+r",
+				"when": "editorTextFocus"
+			},
+            {
+				"command": "ewam.deliver",
+				"key": "alt+d",
+				"mac": "alt+d",
 				"when": "editorTextFocus"
 			}
 		],
@@ -58,6 +95,10 @@
             {
                 "command": "ewam.scenario",
                 "title": "eWam Scenario"
+            },
+            {
+                "command": "ewam.deliver",
+                "title": "eWam Deliver"
             }
         ],
         "languages": [

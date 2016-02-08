@@ -24,12 +24,16 @@ Parsing, checkin and Scenario edition demo
 
 ## Features
 - [x] Syntax highlightings (with typescript definitions)  
+- [x] Code snippets
 - [x] Watches (with typescript definitions)  
 - [x] Open a class, `Alt+o`  
 - [x] Checkin a class `Alt+i` 
 - [x] Open scenarios `Alt+s` 
-- [x] Parse `Alt+p` 
+- [x] Parse `F7` 
 - [x] Code completion  
+- [x] Deliver  `Alt+d`
+- [x] Reimplem  `Alt+r`
+- [ ] New class  `Alt+n`
 
 ## Additional demos
 ### Code completion
