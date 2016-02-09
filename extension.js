@@ -4,18 +4,41 @@ var vscode = require('vscode');
 var axios = require('axios');
 var fs = require('fs');
 
-const EXTENSION = '.js';
+const EXTENSION = '.gold';
 
-
+var scenarioBarItem = {};
+var checkInBarItem = {};
+var checkOutBarItem = {};
+var reimplemBarItem = {};
+var parseBarItem = {};
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
 
+function refreshBarItems() {
+    var name = getOpenClassName();
+    var config = vscode.workspace.getConfiguration('ewam');
+
+    if (name != '') {
+        axios.get(config.url + '/api/rest/classOrModule/' + name + '/entityStatus')
+            .then(function (response) {
+                if (response.data.checkedOut) {
+                    checkInBarItem.show();
+                    checkOutBarItem.hide();
+                    scenarioBarItem.show();
+                    reimplemBarItem.show();
+                } else {
+                    checkInBarItem.hide();
+                    checkOutBarItem.show();
+                    scenarioBarItem.hide();
+                    reimplemBarItem.hide();
+                }
+            });
+    }
+}
+
 function openClass(name) {
-    /*var editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        return; // No open text editor
-    }*/
+
     var config = vscode.workspace.getConfiguration('ewam');
     axios.get(config.url + '/api/rest/classOrModule/' + name)
         .then(function (response) {
@@ -38,6 +61,7 @@ function openClass(name) {
                 var configDocument = vscode.workspace.openTextDocument(fileName);
                 configDocument.then(function (document) {
                     vscode.window.showTextDocument(document);
+                    refreshBarItems();
                 });
                 const spawn = require('child_process').spawn;
                 const ls = spawn('git', ['add', fileName], { cwd: vscode.workspace.rootPath, env: process.env });
@@ -45,10 +69,7 @@ function openClass(name) {
                 ls.stdout.on('data', (data) => {
                     console.log(`stdout: ${data}`);
                 });
-
-
             });
-
         })
         .catch(function (response) {
             console.log(response);
@@ -61,7 +82,7 @@ function GenericPostOperation(name, op) {
     var config = vscode.workspace.getConfiguration('ewam');
     axios.post(config.url + '/api/rest/classOrModule/' + name + '/' + op)
         .then(function (response) {
-            console.log(response);
+            refreshBarItems();
         })
         .catch(function (response) {
             console.log(response);
@@ -69,15 +90,9 @@ function GenericPostOperation(name, op) {
 }
 
 function checkInClass(name) {
-    /*var editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        return; // No open text editor
-    }*/
     var config = vscode.workspace.getConfiguration('ewam');
-
     axios.post(config.url + '/api/rest/classOrModule/' + name + '/checkIn')
         .then(function (response) {
-
             console.log(vscode.workspace.rootPath);
             var fileName = vscode.workspace.rootPath + '\\' + name + EXTENSION;
 
@@ -88,12 +103,11 @@ function checkInClass(name) {
             ls.stdout.on('data', (data) => {
                 console.log(`stdout: ${data}`);
             });
-
+            refreshBarItems();
         })
         .catch(function (response) {
             console.log(response);
         });
-
 }
 
 function getOpenClassName() {
@@ -105,7 +119,6 @@ function getOpenClassName() {
         var fpath = editor.document.fileName.replace(/^.*[\\\/]/, '');
         return fpath.substring(fpath.lastIndexOf('/') + 1, fpath.lastIndexOf('.'));
     }
-
 }
 
 function parse(context, parsingErrorDecorationType) {
@@ -133,18 +146,23 @@ function parse(context, parsingErrorDecorationType) {
                         editBuilder.replace(range, response.data.content)
                         setDeco(context, [], parsingErrorDecorationType);
                     });
-                console.log(response);
+                //console.log(response);
                 vscode.window.setStatusBarMessage('Parsing OK');
+                refreshBarItems();
+                parseBarItem.color = 'white';
 
             })
             .catch(function (response) {
-                console.log(response);
+                parseBarItem.color = 'red';
+                //console.log(response);
                 vscode.window.setStatusBarMessage('Parsing Errors');
                 //for (var error of response.data) {
                 //    vscode.window.showErrorMessage(error.msg + error.line);
                 //}
-                vscode.window.showErrorMessage('Parsing error(s)');
-                setDeco(context, response.data, parsingErrorDecorationType);
+                //vscode.window.showErrorMessage('Parsing error(s)');
+                if (response.data != undefined)
+                    setDeco(context, response.data, parsingErrorDecorationType);
+                refreshBarItems();
             });
     }
 }
@@ -175,11 +193,30 @@ function getScenario(classname, callBack) {
         .then(function (response) {
             vscode.window.showQuickPick(response.data)
                 .then((selection) => {
-                    callBack(classname, selection)
+                    callBack(classname, selection.label)
                 });
         })
         .catch(function (response) {
             console.log(response);
+        });
+}
+
+function newClass() {
+    vscode.window.showInputBox({ prompt: 'Parent class name', value: '' })
+        .then(parent => {
+            if (parent != undefined) {
+                vscode.window.showInputBox({ prompt: 'Class name', value: '' })
+                    .then(name => {
+                        if (name != undefined) {
+                            var config = vscode.workspace.getConfiguration('ewam');
+                            axios.put(config.url + '/api/rest/classOrModule/', { content: '', ancestor: parent, name: name })
+                                .then(function (response) {
+                                    console.log(response);
+                                    openClass(name);
+                                });
+                        }
+                    });
+            }
         });
 }
 
@@ -195,20 +232,64 @@ function editScenario(classname, scenarioName) {
         });
 }
 
+function metaInfo() {
+    var classname = '';
+    var editor = vscode.window.activeTextEditor;
+    if (!editor) {
+    } else {
+        var selection = editor.selection;
+        classname = editor.document.getText(selection);
+    }
+
+    if (classname == '') {
+        classname = getOpenClassName();
+    }
+
+    if (classname != '') {
+        vscode.window.showQuickPick(['Variables', 'Methods', 'Parents', 'Descendants', 'Sisters', 'Types'], { placeHolder: 'What meta data do you want?' }).then(choice => {
+            if (choice != undefined) {
+                var config = vscode.workspace.getConfiguration('ewam');
+
+                axios.get(config.url + '/api/rest/classOrModule/' + classname + '/' + choice)
+                    .then(function (response) {
+                        vscode.window.showQuickPick(response.data).then(selected => {
+                            if (selected != undefined) {
+                                if (choice == 'Variables') {
+                                    vscode.window.showQuickPick(['Override']).then(action => {
+
+                                    });
+                                } else if (choice == 'Methods') {
+                                    vscode.window.showQuickPick(['Override', 'Break Point']).then(action => {
+                                    });
+                                } else if (choice == 'Parents' || choice == 'Descendants' || choice == 'Sisters') {
+                                    openClass(selected.label);
+                                }
+                            }
+                        });
+
+                    })
+                    .catch(function (response) {
+                        console.log(response);
+                    });
+            }
+        });
+    }
+}
+
 /**
  * Search for a class	
-		 *
-		 * @param criteria string The message to show.
-		 * @return the class name selected.
-		 * when the message was dismissed.
-		 */
+ *
+ * @param criteria string The message to show.
+ * @return the class name selected.
+ * when the message was dismissed.
+ */
 function searchClass(callBackFunc) {
 
     var config = vscode.workspace.getConfiguration('ewam');
     var editor = vscode.window.activeTextEditor;
     var text = '';
     if (!editor) {
-        text='';
+        text = '';
     } else {
         var selection = editor.selection;
         text = editor.document.getText(selection);
@@ -237,6 +318,14 @@ function searchClass(callBackFunc) {
             );
 }
 
+
+function run() {
+
+    var config = vscode.workspace.getConfiguration('ewam');
+    axios.post(config.url + '/api/rest/run/' + config.className + '/' + config.methodName, config.args)
+        .then(function (response) {
+        });
+}
 
 function activate(context) {
 
@@ -268,7 +357,6 @@ function activate(context) {
 
     var name = '';
     var disposable = vscode.commands.registerCommand('ewam.openEntity', function () {
-        //          setDeco(context);
         name = searchClass(openClass);
     });
     context.subscriptions.push(disposable);
@@ -290,6 +378,7 @@ function activate(context) {
 
     disposable = vscode.commands.registerCommand('ewam.parse', function () {
         parse(context, parsingErrorDecorationType);
+        
     });
     context.subscriptions.push(disposable);
 
@@ -298,12 +387,85 @@ function activate(context) {
     });
     context.subscriptions.push(disposable);
 
-
+    disposable = vscode.commands.registerCommand('ewam.newClass', function () {
+        newClass();
+    });
+    context.subscriptions.push(disposable);
+    disposable = vscode.commands.registerCommand('ewam.metaInfo', function () {
+        metaInfo();
+    });
+    context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('ewam.scenario', function () {
         getScenario(getOpenClassName(), editScenario);
     });
     context.subscriptions.push(disposable);
+    ;
+    disposable = vscode.commands.registerCommand('ewam.run', function () {
+       run();
+    });
+    context.subscriptions.push(disposable);
+
+    parseBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    parseBarItem.text = '$(beaker) Parse'
+    parseBarItem.tooltip = 'Parse class';
+    parseBarItem.command = 'ewam.parse';
+    parseBarItem.show();
+
+    var statusBarItemMain = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    statusBarItemMain.text = '$(inbox) Open'
+    statusBarItemMain.tooltip = 'Open entity';
+    statusBarItemMain.command = 'ewam.openEntity';
+    statusBarItemMain.show();
+
+    statusBarItemMain = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    statusBarItemMain.text = '$(info) Class Info'
+    statusBarItemMain.tooltip = 'Metamodel information';
+    statusBarItemMain.command = 'ewam.metaInfo';
+    statusBarItemMain.show();
+
+    checkOutBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    checkOutBarItem.text = '$(cloud-download) Check Out'
+    checkOutBarItem.tooltip = 'Check out';
+    checkOutBarItem.command = 'ewam.checkOut';
+    //checkOutBarItem.show();
+    
+    checkInBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    checkInBarItem.text = '$(cloud-upload) Check In'
+    checkInBarItem.tooltip = 'Check in Class';
+    checkInBarItem.command = 'ewam.checkIn';
+    //checkInBarItem.show();
+    
+    
+    reimplemBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    reimplemBarItem.text = '$(jersey) Reimplem'
+    reimplemBarItem.tooltip = 'Reimplem';
+    reimplemBarItem.command = 'ewam.reimplem';
+    //statusBarItemMain.color='orange';
+    reimplemBarItem.show();
+
+
+
+    statusBarItemMain = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+    statusBarItemMain.text = '$(plus) New Class'
+    statusBarItemMain.tooltip = 'New Class';
+    statusBarItemMain.command = 'ewam.newClass';
+    statusBarItemMain.show();
+    
+    statusBarItemMain = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+    statusBarItemMain.text = '$(triangle-right) Run'
+    statusBarItemMain.tooltip = 'Run Application';
+    statusBarItemMain.command = 'ewam.run';
+    statusBarItemMain.show();
+
+    scenarioBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
+    scenarioBarItem.text = '$(hubot) Scenarios'
+    scenarioBarItem.tooltip = 'Edit scenarios';
+    scenarioBarItem.command = 'ewam.scenario';
+    //statusBarItemMain.color='orange';
+   
+
+   
     
     //disposable = vscode.window.setStatusBarMessage('Ready');
     //context.subscriptions.push(disposable);

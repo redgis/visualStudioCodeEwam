@@ -17,7 +17,10 @@
         "onCommand:ewam.parse",
         "onCommand:ewam.reimplem",
         "onCommand:ewam.scenario",
-        "onCommand:ewam.deliver"
+        "onCommand:ewam.deliver",
+        "onCommand:ewam.newClass",
+        "onCommand:ewam.metaInfo",
+        "onCommand:ewam.run"
     ],
     "main": "./extension",
     "contributes": {
@@ -28,49 +31,64 @@
             }
         ],
         "keybindings": [
-			{
-				"command": "ewam.parse",
-				"key": "F7",
-				"mac": "F7",
-				"when": "editorTextFocus"
-			},
             {
-				"command": "ewam.scenario",
-				"key": "alt+s",
-				"mac": "alt+s",
-				"when": "editorTextFocus"
-			},
+                "command": "ewam.parse",
+                "key": "F7",
+                "mac": "F7",
+                "when": "editorTextFocus"
+            },
             {
-				"command": "ewam.checkIn",
-				"key": "alt+i",
-				"mac": "alt+i",
-				"when": "editorTextFocus"
-			},
+                "command": "ewam.scenario",
+                "key": "alt+s",
+                "mac": "alt+s",
+                "when": "editorTextFocus"
+            },
             {
-				"command": "ewam.checkOut",
-				"key": "alt+c",
-				"mac": "alt+c",
-				"when": "editorTextFocus"
-			},
+                "command": "ewam.checkIn",
+                "key": "alt+i",
+                "mac": "alt+i",
+                "when": "editorTextFocus"
+            },
             {
-				"command": "ewam.openEntity",
-				"key": "alt+o",
-				"mac": "alt+o",
-				"when": "editorTextFocus"
-			},
+                "command": "ewam.checkOut",
+                "key": "alt+c",
+                "mac": "alt+c",
+                "when": "editorTextFocus"
+            },
             {
-				"command": "ewam.reimplem",
-				"key": "alt+r",
-				"mac": "alt+r",
-				"when": "editorTextFocus"
-			},
+                "command": "ewam.openEntity",
+                "key": "alt+o",
+                "mac": "alt+o",
+                "when": "editorTextFocus"
+            },
             {
-				"command": "ewam.deliver",
-				"key": "alt+d",
-				"mac": "alt+d",
-				"when": "editorTextFocus"
-			}
-		],
+                "command": "ewam.reimplem",
+                "key": "alt+r",
+                "mac": "alt+r",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "ewam.deliver",
+                "key": "alt+d",
+                "mac": "alt+d",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "ewam.newClass",
+                "key": "alt+n",
+                "mac": "alt+n"
+            },
+            {
+                "command": "ewam.metaInfo",
+                "key": "alt+m",
+                "mac": "alt+m"
+            },
+            {
+                "command": "ewam.run",
+                "key": "F5",
+                "mac": "F5"
+            }
+        ],
         "commands": [
             {
                 "command": "ewam.openEntity",
@@ -99,6 +117,18 @@
             {
                 "command": "ewam.deliver",
                 "title": "eWam Deliver"
+            },
+            {
+                "command": "ewam.newClass",
+                "title": "eWam New Class"
+            },
+            {
+                "command": "ewam.metaInfo",
+                "title": "eWam Class Meta Info"
+            },
+            {
+                "command": "ewam.run",
+                "title": "eWam Run Application"
             }
         ],
         "languages": [
@@ -110,8 +140,7 @@
                 ],
                 "extensions": [
                     ".gold",
-                    ".god",
-                    ".js"
+                    ".god"
                 ],
                 "configuration": "./gold.configuration.json"
             }
@@ -131,6 +160,24 @@
                     "type": "string",
                     "default": "http://localhost:8082",
                     "description": "End point of your eWam as a service"
+                },
+                "ewam.className": {
+                    "type": "string",
+                    "default": "aWFApplicationLauncher",
+                    "description": "Class used to launch the application"
+                },
+                "ewam.methodName": {
+                    "type": "string",
+                    "default": "Run",
+                    "description": "Method used to launch the application"
+                },
+                "ewam.args": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "default": [{"key":"WFAPPLINAME","value":"WynsureSolution_Life_US"}, {"key":"RUNCONTEXTNAME","value":"MultiLanguageRunningContext"}],
+                    "description": "Arguments used to launch the application"
                 }
             }
         }

@@ -33,7 +33,10 @@ Parsing, checkin and Scenario edition demo
 - [x] Code completion  
 - [x] Deliver  `Alt+d`
 - [x] Reimplem  `Alt+r`
-- [ ] New class  `Alt+n`
+- [x] New class  `Alt+n`
+- [x] Meta info  `Alt+m`
+- [x] Contextual buttons
+- [x] Run application `F5`
 
 ## Additional demos
 ### Code completion
