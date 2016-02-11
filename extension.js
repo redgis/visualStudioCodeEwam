@@ -11,11 +11,30 @@ var checkInBarItem = {};
 var checkOutBarItem = {};
 var reimplemBarItem = {};
 var parseBarItem = {};
+var parsingErrorDecorationType = {};
+var breakPointDecorationType = {};
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
 
-function refreshBarItems() {
+function setDecoForStopPoints(methods) {
+    var decos = [];
+    var activeEditor = vscode.window.activeTextEditor;
+    var text = activeEditor.document.getText();
+
+    for (var method of methods) {
+        var i = text.search('function ' + method);
+        if (i == -1)
+            i = text.search('procedure ' + method);
+        var start = activeEditor.document.positionAt(i);
+        var end = activeEditor.document.positionAt(i + 10);
+        var r = new vscode.Range(start, end);
+        decos.push({ range: r, hoverMessage: 'Break point on '+method });
+    }
+    activeEditor.setDecorations(breakPointDecorationType, decos);
+}
+
+function refreshUI() {
     var name = getOpenClassName();
     var config = vscode.workspace.getConfiguration('ewam');
 
@@ -27,12 +46,15 @@ function refreshBarItems() {
                     checkOutBarItem.hide();
                     scenarioBarItem.show();
                     reimplemBarItem.show();
+                    parseBarItem.show();
                 } else {
                     checkInBarItem.hide();
                     checkOutBarItem.show();
                     scenarioBarItem.hide();
                     reimplemBarItem.hide();
+                    parseBarItem.hide();
                 }
+                setDecoForStopPoints(response.data.stopPoints);
             });
     }
 }
@@ -43,10 +65,8 @@ function openClass(name) {
     axios.get(config.url + '/api/rest/classOrModule/' + name)
         .then(function (response) {
             vscode.window.setStatusBarMessage('eWam Parsing Ok');
-            /* editor.edit(editBuilder => { 
-                 
-                 editBuilder.replace(editor.selection, response.data.content);
-             
+            /* editor.edit(editBuilder => {            
+                 editBuilder.replace(editor.selection, response.data.content);     
                  }
              );*/
 
@@ -61,7 +81,7 @@ function openClass(name) {
                 var configDocument = vscode.workspace.openTextDocument(fileName);
                 configDocument.then(function (document) {
                     vscode.window.showTextDocument(document);
-                    refreshBarItems();
+                    refreshUI();
                 });
                 const spawn = require('child_process').spawn;
                 const ls = spawn('git', ['add', fileName], { cwd: vscode.workspace.rootPath, env: process.env });
@@ -82,7 +102,7 @@ function GenericPostOperation(name, op) {
     var config = vscode.workspace.getConfiguration('ewam');
     axios.post(config.url + '/api/rest/classOrModule/' + name + '/' + op)
         .then(function (response) {
-            refreshBarItems();
+            refreshUI();
         })
         .catch(function (response) {
             console.log(response);
@@ -103,7 +123,7 @@ function checkInClass(name) {
             ls.stdout.on('data', (data) => {
                 console.log(`stdout: ${data}`);
             });
-            refreshBarItems();
+            refreshUI();
         })
         .catch(function (response) {
             console.log(response);
@@ -121,7 +141,7 @@ function getOpenClassName() {
     }
 }
 
-function parse(context, parsingErrorDecorationType) {
+function parse() {
     var editor = vscode.window.activeTextEditor;
     var className = getOpenClassName();
     var config = vscode.workspace.getConfiguration('ewam');
@@ -144,11 +164,11 @@ function parse(context, parsingErrorDecorationType) {
                         var end = vscode.window.activeTextEditor.document.lineAt(lastLine).range.end;
                         var range = new vscode.Range(start, end);
                         editBuilder.replace(range, response.data.content)
-                        setDeco(context, [], parsingErrorDecorationType);
+                        setDeco([]);
                     });
                 //console.log(response);
                 vscode.window.setStatusBarMessage('Parsing OK');
-                refreshBarItems();
+                refreshUI();
                 parseBarItem.color = 'white';
 
             })
@@ -161,14 +181,14 @@ function parse(context, parsingErrorDecorationType) {
                 //}
                 //vscode.window.showErrorMessage('Parsing error(s)');
                 if (response.data != undefined)
-                    setDeco(context, response.data, parsingErrorDecorationType);
-                refreshBarItems();
+                    setDeco(response.data);
+                refreshUI();
             });
     }
 }
 
 
-function setDeco(context, errors, parsingErrorDecorationType) {
+function setDeco(errors) {
     var decos = [];
     var activeEditor = vscode.window.activeTextEditor;
     for (var error of errors) {
@@ -259,7 +279,27 @@ function metaInfo() {
 
                                     });
                                 } else if (choice == 'Methods') {
-                                    vscode.window.showQuickPick(['Override', 'Break Point']).then(action => {
+                                    vscode.window.showQuickPick(['Override', 'Toggle Break Point']).then(action => {
+                                        if (action == 'Toggle Break Point') {
+                                            axios.post(config.url + selected.location + '/breakPoint')
+                                                .then(function (method) {
+                                                    refreshUI();
+                                                });
+                                        } else if (action == 'Override') {
+                                            axios.get(config.url + selected.location)
+                                                .then(function (method) {
+                                                    console.log(method);
+                                                    editor = vscode.window.activeTextEditor;
+                                                    editor.edit(editBuilder => {
+                                                        // var start = new vscode.Position(0, 0);                                                         
+                                                        // var end = new vscode.Position(0, 1);
+                                                        // var range = new vscode.Range(start, end);
+                                                        var selection = editor.selection;
+                                                        editBuilder.replace(selection, method.data);
+                                                    }
+                                                        );
+                                                });
+                                        }
                                     });
                                 } else if (choice == 'Parents' || choice == 'Descendants' || choice == 'Sisters') {
                                     openClass(selected.label);
@@ -327,6 +367,12 @@ function run() {
         });
 }
 
+const fixProvider = {
+    provideCodeActions: function (document, range, context, token) {
+        return [{ title: "Command", command: "cursorUp" }];
+    }
+};
+
 function activate(context) {
 
     // Use the console to output diagnostic information (console.log) and errors (console.error)
@@ -334,9 +380,9 @@ function activate(context) {
     console.log('"ewamvscadaptor" is now active');
 
     var pathIcon = context.asAbsolutePath('images\\dot.png');
-    var parsingErrorDecorationType = vscode.window.createTextEditorDecorationType({
-        gutterIconPath: pathIcon,
-        /*isWholeLine: true,
+    parsingErrorDecorationType = vscode.window.createTextEditorDecorationType({
+        /*gutterIconPath: pathIcon,
+        isWholeLine: true,
         color: 'red',
         borderColor:'red',
         borderWidth:'1px',
@@ -345,6 +391,9 @@ function activate(context) {
 		overviewRulerColor: 'blue',*/
         backgroundColor: 'rgba(128,64,64,0.5)',
         overviewRulerLane: vscode.OverviewRulerLane.Right
+    });
+    breakPointDecorationType = vscode.window.createTextEditorDecorationType({
+        gutterIconPath: pathIcon
     });
 
     var myOutputChannel = vscode.window.createOutputChannel('eWam');
@@ -377,8 +426,7 @@ function activate(context) {
     context.subscriptions.push(disposable);
 
     disposable = vscode.commands.registerCommand('ewam.parse', function () {
-        parse(context, parsingErrorDecorationType);
-        
+        parse();
     });
     context.subscriptions.push(disposable);
 
@@ -402,9 +450,19 @@ function activate(context) {
     context.subscriptions.push(disposable);
     ;
     disposable = vscode.commands.registerCommand('ewam.run', function () {
-       run();
+        run();
     });
     context.subscriptions.push(disposable);
+
+    const fixer = vscode.languages.registerCodeActionsProvider("javascript", fixProvider);
+    context.subscriptions.push(fixer);
+
+    vscode.languages.registerHoverProvider('javascript', {
+        provideHover(document, position, token) {
+            return new Hover('I am a hover!');
+        }
+    });
+
 
     parseBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
     parseBarItem.text = '$(beaker) Parse'
@@ -451,7 +509,7 @@ function activate(context) {
     statusBarItemMain.tooltip = 'New Class';
     statusBarItemMain.command = 'ewam.newClass';
     statusBarItemMain.show();
-    
+
     statusBarItemMain = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
     statusBarItemMain.text = '$(triangle-right) Run'
     statusBarItemMain.tooltip = 'Run Application';

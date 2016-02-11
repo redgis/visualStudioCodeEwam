@@ -8,7 +8,7 @@ Parsing, checkin and Scenario edition demo
 ![eWam VSC](eWam4.gif)
 
 ## Requirements
-* Visual Studio Code 10.6
+* Visual Studio Code 10.8
 * [ModelAPI v1](https://github.com/MphasisWyde/WydeActiveModelerAPI)
 
 ## Installation
@@ -37,6 +37,8 @@ Parsing, checkin and Scenario edition demo
 - [x] Meta info  `Alt+m`
 - [x] Contextual buttons
 - [x] Run application `F5`
+- [x] Override a method
+- [x] Toggle break points (via `Alt+m`)
 
 ## Additional demos
 ### Code completion
