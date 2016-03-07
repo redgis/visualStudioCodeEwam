@@ -124,7 +124,7 @@ connection.onCompletion((textDocumentPosition: TextDocumentPosition) : Thenable<
         }
     };
 
-   return  rp({ method: 'POST', uri: url + '/api/rest/classOrModule/' + className + '/Suggest2', json: true, body: body });
+   return  rp({ method: 'POST', uri: url + '/api/rest/classOrModule/' + className + '/Suggest', json: true, body: body });
     //return thenable;
  
 });
