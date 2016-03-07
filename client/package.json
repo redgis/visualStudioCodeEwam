@@ -2,27 +2,31 @@
     "name": "ewamvscadaptor",
     "displayName": "eWamVSCAdaptor",
     "description": "e-Wam Visual Studio Adaptor",
-    "version": "0.0.2",
+    "version": "0.1.1",
     "publisher": "mphasiswyde",
+	"galleryBanner": {
+		"color": "#5c2d91",
+		"theme": "dark"
+	},
+	"bugs": {
+		"url": "https://github.com/MphasisWyde/visualStudioCodeEwam/issues",
+		"email": "support@wyde.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/MphasisWyde/visualStudioCodeEwam.git"
+	},
+    "homepage": "https://github.com/MphasisWyde/visualStudioCodeEwam/tree/master/README.md",
+	"categories": [
+		"Other"
+	],
     "engines": {
         "vscode": "^0.10.1"
     },
-    "categories": [
-        "Other"
-    ],
     "activationEvents": [
-        "onCommand:ewam.openEntity",
-        "onCommand:ewam.checkIn",
-        "onCommand:ewam.checkOut",
-        "onCommand:ewam.parse",
-        "onCommand:ewam.reimplem",
-        "onCommand:ewam.scenario",
-        "onCommand:ewam.deliver",
-        "onCommand:ewam.newClass",
-        "onCommand:ewam.metaInfo",
-        "onCommand:ewam.run"
+        "onLanguage:gold"
     ],
-    "main": "./out/extension",
+    "main": "./out/src/extension",
     "contributes": {
         "snippets": [
             {
@@ -192,6 +196,6 @@
     },
     "dependencies": {
         "axios": "^0.9.1",
-        "fs": "0.0.2"
+        "vscode-languageclient": "^1.1.0"
     }
 }
