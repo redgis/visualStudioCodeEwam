@@ -99,6 +99,17 @@ connection.onDidChangeWatchedFiles((change) => {
     connection.console.log('We received an file change event');
 });
 
+function transform(response:CompletionList): CompletionList {
+    
+    for (var item of response.items){
+        if (item["name"] != undefined)
+             item["label"]=item["name"];
+    }
+    
+    return response;
+   
+    
+}
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion((textDocumentPosition: TextDocumentPosition) : Thenable<CompletionList> => {
@@ -107,10 +118,8 @@ connection.onCompletion((textDocumentPosition: TextDocumentPosition) : Thenable<
 
     var position = textDocumentPosition.position;
     var line = lines[position.line];
-
-    
-   
     var className = textDocumentPosition.uri.substring(textDocumentPosition.uri.lastIndexOf('/') + 1, textDocumentPosition.uri.lastIndexOf('.'));
+    
     var body = {
         implem: {
             name: className,
@@ -124,8 +133,12 @@ connection.onCompletion((textDocumentPosition: TextDocumentPosition) : Thenable<
         }
     };
 
-   return  rp({ method: 'POST', uri: url + '/api/rest/classOrModule/' + className + '/Suggest', json: true, body: body });
+   //var _rp=  rp({ method: 'POST', uri: url + '/api/rest/classOrModule/' + className + '/Suggest', json: true, body: body });
+   
+   var _rp= rp({ method: 'POST', uri: url + '/aMRS_ActiveModelService/suggest', json: true, body: {body: body} });
     //return thenable;
+    
+    return _rp.then((response) => transform(response) );
  
 });
 
