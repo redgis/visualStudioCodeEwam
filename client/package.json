@@ -2,24 +2,25 @@
     "name": "ewamvscadaptor",
     "displayName": "eWamVSCAdaptor",
     "description": "e-Wam Visual Studio Adaptor",
-    "version": "0.1.1",
+    "version": "0.1.6",
     "publisher": "mphasiswyde",
-	"galleryBanner": {
-		"color": "#5c2d91",
-		"theme": "dark"
-	},
-	"bugs": {
-		"url": "https://github.com/MphasisWyde/visualStudioCodeEwam/issues",
-		"email": "support@wyde.com"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/MphasisWyde/visualStudioCodeEwam.git"
-	},
-    "homepage": "https://github.com/MphasisWyde/visualStudioCodeEwam/tree/master/README.md",
-	"categories": [
-		"Other"
-	],
+    "galleryBanner": {
+        "color": "#5c2d91",
+        "theme": "dark"
+    },
+    "icon": "images/eWam.png",
+    "bugs": {
+        "url": "https://github.com/MphasisWyde/visualStudioCodeEwam/issues",
+        "email": "support@wyde.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MphasisWyde/visualStudioCodeEwam.git"
+    },
+    "homepage": "https://github.com/MphasisWyde/visualStudioCodeEwam/blob/master/README.md",
+    "categories": [
+        "Other"
+    ],
     "engines": {
         "vscode": "^0.10.1"
     },
@@ -180,16 +181,25 @@
                     "items": {
                         "type": "object"
                     },
-                    "default": [{"key":"WFAPPLINAME","value":"WynsureSolution_Life_US"}, {"key":"RUNCONTEXTNAME","value":"MultiLanguageRunningContext"}],
+                    "default": [
+                        {
+                            "key": "WFAPPLINAME",
+                            "value": "WynsureSolution_Life_US"
+                        },
+                        {
+                            "key": "RUNCONTEXTNAME",
+                            "value": "MultiLanguageRunningContext"
+                        }
+                    ],
                     "description": "Arguments used to launch the application"
                 }
             }
         }
     },
     "scripts": {
-		"vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
-	},
+        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+    },
     "devDependencies": {
         "typescript": "^1.6.2",
         "vscode": "0.10.x"

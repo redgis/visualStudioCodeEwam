@@ -1,13 +1,59 @@
-# README
-## This is the README for your extension "vscode" 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+# Visual Studio Code Ewam
 
-* Split the editor (`Cmd+\` on OSX or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on OSX or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (OSX) to see a list of Markdown snippets
+This repo is a work in progress as Visual Studio Code is still in Beta by Microsoft.
+This plugin leverage the eWam API to let you edit eWam Code With Visual Studio Code.
 
-### For more information
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Demo
+Parsing, checkin and Scenario edition demo
+![eWam VSC](eWam4.gif)
 
-** Enjoy!**
+## Requirements
+* Visual Studio Code 10.8
+* [ModelAPI v1](https://github.com/MphasisWyde/WydeActiveModelerAPI)
+
+## Installation
+* Clone this repo
+* Run `npm install`
+* Open the folder
+
+## Get up and running straight away (Debug mode)
+* press `F5` to open a new window with your extension loaded
+* run your command from the command palette by pressing (`Ctrl+Shift+P` or `F1`) and typing `ewam`
+* set breakpoints in `extension.ts` to debug the extension
+* find output from your extension in the debug console
+
+## Features
+- [x] Syntax highlightings 
+- [x] Code snippets
+
+- [x] Open a class, `Alt+o`  
+- [x] Checkin a class `Alt+i` 
+- [x] Open scenarios `Alt+s` 
+- [x] Parse `F7` 
+- [x] Code completion  `Ctrl +' '`
+- [x] Deliver  `Alt+d`
+- [x] Reimplem  `Alt+r`
+- [x] New class  `Alt+n`
+- [x] Meta info  `Alt+m`
+- [x] Contextual buttons
+- [x] Run application `F5`
+- [x] Override a method
+- [x] Toggle break points (via `Alt+m`)
+
+## Roadmap
+- [ ] Additional code snippets
+- [ ] Debugger
+- [ ] Outline  
+- [ ] Cache management
+- [ ] Rename Symbol
+- [ ] Additional validations
+- [ ] Other entity management
+
+## Additional demos
+### Code completion
+![eWam VSC](eWam.gif)
+
+
+
+
+

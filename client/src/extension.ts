@@ -85,7 +85,7 @@ function openClass(name: string) {
 
                 if (err) throw err;
                 //var uploadingStatus = vscode.window.setStatusBarMessage("Class imported " + fileName);
-                
+
                 var configDocument = vscode.workspace.openTextDocument(fileName);
                 configDocument.then(function(document) {
                     vscode.window.showTextDocument(document);
@@ -174,22 +174,22 @@ function parse() {
                         var lastLine: number;
                         editor = vscode.window.activeTextEditor;
                         //if (editor && !editor.document) {
-                            lastLine = editor.document.lineCount - 1;
-                            var end: vscode.Position;
-                            end = editor.document.lineAt(lastLine).range.end;
-                            var range: vscode.Range;
+                        lastLine = editor.document.lineCount - 1;
+                        var end: vscode.Position;
+                        end = editor.document.lineAt(lastLine).range.end;
+                        var range: vscode.Range;
 
-                            range = new vscode.Range(start, end);
-                            editBuilder.replace(range, response.data["content"]);
-                            setDeco(response.data["errors"]);
-                            refreshUI();
-                            parseBarItem.color = 'white';
+                        range = new vscode.Range(start, end);
+                        editBuilder.replace(range, response.data["content"]);
+                        setDeco(response.data["errors"]);
+                        refreshUI();
+                        parseBarItem.color = 'white';
                         //}
                     });
                 //console.log(response);
                 //vscode.window.setStatusBarMessage('Parsing OK');
-               
-               
+
+
 
             })
             .catch(function(response) {
@@ -229,17 +229,17 @@ function setDeco(errors) {
 
 interface getScenarioCallBack { (className: string, scenarioName: string): void }
 
-function getDataAsTable(response):any[]{
+function getDataAsTable(response): any[] {
     return response.data;
 }
-function getDataAsString(response):string{
+function getDataAsString(response): string {
     return response.data;
 }
 function getScenario(classname: string, callBack: getScenarioCallBack) {
-    
+
     axios.get(config.get('url') + '/api/rest/classOrModule/' + classname + '/scenarios')
         .then(function(response) {
-            
+
             vscode.window.showQuickPick(getDataAsTable(response))
                 .then((selection) => {
                     callBack(classname, selection["label"])
@@ -313,7 +313,7 @@ function metaInfo() {
                                         } else if (action == 'Override') {
                                             axios.get(config.get('url') + selected.location)
                                                 .then(function(method) {
-                                                    
+
                                                     editor = vscode.window.activeTextEditor;
                                                     editor.edit(editBuilder => {
                                                         // var start = new vscode.Position(0, 0);                                                         
@@ -342,6 +342,25 @@ function metaInfo() {
 }
 
 interface searchClassCallBack { (className: string): void }
+
+function interact(uri: string) {
+    vscode.window.showQuickPick(['interact', 'checkOut', 'checkIn','deliver'], { placeHolder: 'What operation do you want?' })
+        .then(choice => {
+            if (choice == 'interact') {
+                config = vscode.workspace.getConfiguration('ewam');
+                axios.get(config.get('url') + uri + '/'+choice)
+                    .then(function(response) {
+                    }).catch(function(response) {
+                    });
+            } else if (choice != undefined){
+                 config = vscode.workspace.getConfiguration('ewam');
+                axios.post(config.get('url') + uri + '/'+choice)
+                    .then(function(response) {
+                    }).catch(function(response) {
+                    });
+            }
+        });
+}
 
 /**
  * Search for a class	
@@ -373,8 +392,15 @@ function searchClass(callBackFunc: searchClassCallBack) {
                     console.log(response);
                     vscode.window.showQuickPick(getDataAsTable(response))
                         .then((selection) => {
-                            if (selection != undefined)
-                                callBackFunc(selection.label)
+                            if (selection != undefined) {
+                                if (selection.theType == "aClassDef" || selection.theType == "aReimplemModuleDef" ||
+                                    selection.theType == "aModuleDef" || selection.theType == "aReimplemClassDef") {
+                                    callBackFunc(selection.label);
+                                } else {
+                                    interact(selection.location);
+                                }
+
+                            }
                         });
                 })
                 .catch(function(response) {
@@ -398,19 +424,19 @@ export function activate(context: vscode.ExtensionContext) {
 
     console.log('"ewamvscadaptor" is now active');
     config = vscode.workspace.getConfiguration('ewam');
-    
+
     // The server is implemented in node
     let serverModule = context.asAbsolutePath(path.join('server', 'server.js'));
     // The debug options for the server
     let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
-	
+
     // If the extension is launch in debug mode the debug server options are use
     // Otherwise the run options are used
     let serverOptions: ServerOptions = {
         run: { module: serverModule, transport: TransportKind.ipc },
         debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
     }
-	
+
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
@@ -422,10 +448,10 @@ export function activate(context: vscode.ExtensionContext) {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/.gold')
         }
     }
-	
+
     // Create the language client and start the client.
     let disposable = new LanguageClient('Ewam VSServer', serverOptions, clientOptions).start();
-	
+
     // Push the disposable to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
     context.subscriptions.push(disposable);
@@ -551,11 +577,11 @@ export function activate(context: vscode.ExtensionContext) {
     scenarioBarItem.text = '$(hubot) Scenarios'
     scenarioBarItem.tooltip = 'Edit scenarios';
     scenarioBarItem.command = 'ewam.scenario';
-   
-   
 
-   
-    
+
+
+
+
     //disposable = vscode.window.setStatusBarMessage('Ready');
     //context.subscriptions.push(disposable);
 }
