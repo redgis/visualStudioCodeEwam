@@ -8,13 +8,17 @@ Parsing, checkin and Scenario edition demo
 ![eWam VSC](eWam4.gif)
 
 ## Requirements
-* Visual Studio Code 10.8
+* Visual Studio Code 10.8 or [VS Code insiders](https://code.visualstudio.com/insiders)
 * [ModelAPI v1](https://github.com/MphasisWyde/WydeActiveModelerAPI)
 
 ## Installation
+`code client\ewamvscadaptor-0.1.1.vsix`
+
+## Dev Mode
 * Clone this repo
-* Run `npm install`
-* Open the folder
+* `cd client`
+* `npm install`
+* `code .`
 
 ## Get up and running straight away (Debug mode)
 * press `F5` to open a new window with your extension loaded
