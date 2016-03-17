@@ -11,7 +11,7 @@ Parsing, checkin and Scenario edition demo
 * Visual Studio Code 10.8
 * [ModelAPI v1](https://github.com/MphasisWyde/WydeActiveModelerAPI)
 
-## Installation
+## Installation (Dev mode)
 * Clone this repo
 * Run `npm install`
 * Open the folder
@@ -22,10 +22,9 @@ Parsing, checkin and Scenario edition demo
 * set breakpoints in `extension.ts` to debug the extension
 * find output from your extension in the debug console
 
-## Features
+## Features (0.1.x)
 - [x] Syntax highlightings 
 - [x] Code snippets
-
 - [x] Open a class, `Alt+o`  
 - [x] Checkin a class `Alt+i` 
 - [x] Open scenarios `Alt+s` 
@@ -40,14 +39,22 @@ Parsing, checkin and Scenario edition demo
 - [x] Override a method
 - [x] Toggle break points (via `Alt+m`)
 
-## Roadmap
-- [ ] Additional code snippets
+## Roadmap (0.2) 17 avril 2016
+- [ ] Outline - regis
+- [ ] Verify compatibility 6.1 / 6.1.5 (test multi user) - seb
+- [ ] Parsing errors iteration 2 (more native experience + code analyzer) - regis 
+- [ ] override var and method more performant + override dans ewam (60s in 0.1.x) - nicolas
+- [ ] Additional code snippets -all
+- [ ] Rename Symbol  
+- [ ] Additional validations (check repo is writable) - nicolas api
+- [ ] Other entity management (create new scenario, translation,...)
+- [ ] View in tree
+- [ ] Where used (as find all references in VS)
+
+## Roadmap (0.3)
 - [ ] Debugger
-- [ ] Outline  
 - [ ] Cache management
-- [ ] Rename Symbol
-- [ ] Additional validations
-- [ ] Other entity management
+
 
 ## Additional demos
 ### Code completion
