@@ -16,10 +16,10 @@
     "if else": {
         "prefix": "if else",
         "body": [
-            "if ${condition}",
-            "  ${content1}",
+            "if ${1:condition}",
+            "  ${2:content1}",
             "else",
-            "  ${content2}",
+            "  ${3:content2}",
             "endIf"
         ],
         "description": "if [condition] ... else ... endIf"
@@ -27,8 +27,8 @@
     "if": {
         "prefix": "if",
         "body": [
-            "if ${condition}",
-            "  ${content}",
+            "if ${1:condition}",
+            "  ${2:content}",
             "endIf"
         ],
         "description": "if [condition] ... endIf"
@@ -36,12 +36,12 @@
     "if elseif else": {
         "prefix": "if elseif else",
         "body": [
-            "if ${condition1}",
-            "  ${content1}",
-            "elseif ${condition2}",
-            "  ${content2}",
+            "if ${1:condition1}",
+            "  ${3:content1}",
+            "elseif ${2:condition2}",
+            "  ${3:content2}",
             "else",
-            "  ${content3}",
+            "  ${4:content3}",
             "endIf"
         ],
         "description": "if [condition] ... elseif [condition] ... else ... endIf"
@@ -50,23 +50,23 @@
         "prefix": "else",
         "body": [
             "else",
-            "  ${content}"
+            "  ${1:content}"
         ],
         "description": "else ..."
     },
     "elseif": {
         "prefix": "elseif",
         "body": [
-            "elseif ${condition}",
-            "  ${content}"
+            "elseif ${1:condition}",
+            "  ${2:content}"
         ],
         "description": "elseif [condition] ..."
     },
     "foreach": {
         "prefix": "foreach",
         "body": [
-            "foreach ${object} in ${list} ",
-            "  ${content}",
+            "foreach ${1:object} in ${2:list} ",
+            "  ${3:content}",
             "endFor"
         ],
         "description": "foreach [item] in [list] ... endFor"
@@ -75,16 +75,16 @@
         "prefix": "repeat until",
         "body": [
             "repeat",
-            "   ${content}",
-            "until ${condition}"
+            "   ${2:content}",
+            "until ${1:condition}"
         ],
         "description": "repeat ... until [condition]"
     },
     "while": {
         "prefix": "while",
         "body": [
-            "while ${condition}",
-            "   ${content}",
+            "while ${1:condition}",
+            "   ${2:content}",
             "endWhile"
         ],
         "description": "while [condition] ... endWhile"
@@ -94,7 +94,7 @@
         "body": [
             "[model(Text:''),",
             "   type:model(",
-            "         Text:'',", 
+            "         Text:'${0:description}',", 
             "         StillsOnFreeze:true,",
             "         FreezeRefObject:false,",
             "         StoreExtract:false,",
@@ -119,62 +119,62 @@
             "         ),",
             "         MultiRole:null",
             "      )]",
-            "${name} : RefTo [${modifiers}] ${class} inverse ${backRef} multiLang"
+            "${name:refObj} : RefTo [${modifiers:P,A}] ${class:aFullObject} inverse ${backRef:myOwner} multiLang"
         ],
         "description": "[variable] : refto [modifiers] [class] inverse [backref]"
     },
     "refto Owner": {
         "prefix": "refto owner",
         "body": [
-            "[model(Text:'${label}')]",
+            "[model(Text:'${0:description}')]",
             "[type:model(SingleRole:(WhatCanIDo:(CanSearch:false),RoleClass:'aSingleRoleType'))]",
-            "${name} : RefTo [O] ${class} inverse myOwner multiLang"
+            "${name:refObj} : RefTo [O] ${class:aFullObject} inverse myOwner multiLang"
         ],
         "description": "[variable] : refto [O] [class] inverse myOwner"
     },
     "refto PA": {
         "prefix": "refto PA",
         "body": [
-            "[model(Text:'${label}')]",
+            "[model(Text:'${0:description}')]",
             "[type:model(SingleRole:(WhatCanIDo:(CanModif:false,CanCreate:false),RoleClass:'aSingleRoleType'))]",
-            "${name} : RefTo [P,A] ${class} multiLang"
+            "${name:refObj} : RefTo [P,A] ${class:aFullObject} multiLang"
         ],
         "description": "[variable] : refto [P,A] [class] inverse [backref]"
     },
     "listOf": {
         "prefix": "listOf",
         "body": [
-            "[model(Text:'${label}')]",
+            "[model(Text:'${0:description}')]",
             "[type:model(SingleRole:(WhatCanIDo:(CanModif:false,CanCreate:false),RoleClass:'aSingleRoleType'))]",
-            "${name} : listOf [${modifiers}] ${class} inverse ${backref} multiLang"
+            "${name:refObj} : listOf [${modifiers:P,A}] ${class:aFullObject} inverse ${backRef:myOwner} multiLang"
         ],
         "description": "[variable] : listOf [modifiers] [class] inverse [backref]"
     },
     "listOf PA": {
         "prefix": "listOf PA",
         "body": [
-            "[model(Text:'${label}')]",
+            "[model(Text:'${0:description}')]",
             "[type:model(SingleRole:(WhatCanIDo:(CanModif:false,CanCreate:false),RoleClass:'aSingleRoleType'))]",
-            "${name} : ListOf [P,A] ${class} multiLang"
+            "${name:refObj} : ListOf [P,A] ${class:aFullObject} multiLang"
         ],
         "description": "[variable] : listOf [P,A] [class]"
     },
     "listOf Owner": {
         "prefix": "listOf Owner",
         "body": [
-            "[model(Text:'${label}')]",
+            "[model(Text:'${0:description}')]",
             "[type:model(SingleRole:(WhatCanIDo:(CanModif:false,CanCreate:false),RoleClass:'aSingleRoleType'))]",
-            "${name} : ListOf [O] ${class} multiLang"
+            "${name:refObj} : ListOf [O] ${class:aFullObject} multiLang"
         ],
         "description": "[variable] : listOf [O] [class] inverse myOwner"
     },
     "type enum": {
         "prefix": "type enum",
         "body": [
-            "type ${enumName} : (",
-            "    [model(Text:'${valuename1}')] ${value1},", 
-            "    [model(Text:'${valuename2}')] ${value2},",
-            "    [model(Text:'${valuename3}')] ${value3},", 
+            "type ${1:enumName} : (",
+            "    [model(Text:'${2:value name}')] ${3:cValue1},",
+            "    [model(Text:'${4:value name}')] ${5:cValue2},",
+            "    [model(Text:'${6:value name}')] ${7:cValue3},",
             ")"
         ],
         "description": "type [enumName] : ( ... )"
@@ -182,9 +182,9 @@
     "type record": {
         "prefix": "type record",
         "body": [
-            "type ${recordTypeName} : record",
-            "    ${field1} : ${fieldtype1}",
-            "    ${field2} : ${fieldtype2}",
+            "type ${1:tRecordTypeName} : record",
+            "    ${2:field1} : ${3:fieldtype1}",
+            "    ${4:field2} : ${5:fieldtype2}",
             "endRecord"
         ],
         "description": "type [recordName] record ... endRecord"
@@ -192,9 +192,9 @@
     "type record override": {
         "prefix": "type record override",
         "body": [
-            "type ${recordTypeName} : record(${overrideRecord})",
-            "    ${field1} : ${fieldtype1}",
-            "    ${field2} : ${fieldtype2}",
+            "type ${1:tRecordTypeName} : record(${2:overrideRecord})",
+            "    ${3:field1} : ${4:fieldtype1}",
+            "    ${5:field2} : ${6:fieldtype2}",
             "endRecord"
         ],
         "description": "type [recordName] record ... endRecord"
@@ -202,15 +202,15 @@
     "type sequence": {
         "prefix": "type sequence",
         "body": [
-            "type ${sequenceTypeName} : sequence of ${sequenceItemType}"
+            "type ${1:tSequenceTypeName} : sequence of ${2:sequenceItemType}"
         ],
         "description": "type [sequenceName] : sequence of [itemType]"
     },
     "procedure": {
         "prefix": "proc",
         "body": [
-            "procedure ${procname}(${param1} : ${paramtype1}, ${param2} : ${paramtype2}, ...)",
-            "   ${content}",
+            "procedure ${1:procname}(${2:param1} : ${2:paramtype1}, ${4:param2} : ${5:paramtype2}, ...)",
+            "   ${6:content}",
             "endProc"
         ],
         "description": "procedure [procName] ( ... ) ... endProc"
@@ -218,8 +218,8 @@
     "fucntion": {
         "prefix": "func",
         "body": [
-            "function ${funcname}(${param1} : ${paramtype1}, ${param2} : ${paramtype2}, ...) return ${returntype}",
-            "   ${content}",
+            "function ${1:funcname}(${2:param1} : ${3:paramtype1}, ${4:param2} : ${5:paramtype2}, ...) return ${6:returntype}",
+            "   ${7:content}",
             "endFunc"
         ],
         "description": "function [funcName] ( ... ) return [returnType] ... endFunc"
@@ -227,7 +227,7 @@
     "var": {
         "prefix": "var",
         "body": [
-            "var ${varName} : ${varType}"
+            "var ${1:varName} : ${2:varType}"
         ],
         "description": "function [funcName] ( ... ) return [returnType] ... endFunc"
     }

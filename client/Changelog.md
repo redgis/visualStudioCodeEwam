@@ -1,3 +1,6 @@
+## Alpha 0.3.6 - *Deliver on ??*
+   - 
+
 ## Alpha 0.3.5 - *Deliver on July 06, 2017*
    > /!\ Major API change : don't update unless WxWamAPI bundles have been installed in your environment. /!\
    - [x] Added .gitignore in Dev

@@ -15,7 +15,6 @@ import {
    TextEdit, Location, Definition, SymbolKind, NotificationType, WorkspaceEdit, DidChangeConfigurationParams
 } from 'vscode-languageserver';
 
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -358,7 +357,7 @@ connection.onCompletion(
          for (let index: number = 0; index < response.items.length; index++) {
             result.items.push({
                "label": response.items[index].name,
-               "kind": getCompletionKindFromEntityClass(response.items[index].entity.baseType),
+               "kind": <CompletionItemKind>getCompletionKindFromEntityClass(response.items[index].entity.baseType),
                "detail": response.items[index].detail,
                "documentation": response.items[index].documentation,
                "insertText": response.items[index].insertText
@@ -491,7 +490,7 @@ function updateLastImplemVersion(className: string) {
 function updateMetaInfoForClass(classname: string, source: string): Thenable<tMetaInfo> {
 
    if (isUpdatingMetaInfo == true || classname == undefined || classname == '') {
-      let dummyPromise = new Promise(() => { return {} });
+      let dummyPromise : Promise<tMetaInfo> = new Promise(() => { return {} });
       return dummyPromise;
    }
 
@@ -633,7 +632,7 @@ interface tParseResult {
    newSource: string
 };
 
-connection.onRequest({ method: "loadCache" },
+connection.onRequest("loadCache",
    () => {
       loadCache();
       return;
@@ -653,7 +652,7 @@ function loadCache() {
    }
 }
 
-connection.onRequest({ method: "saveCache" },
+connection.onRequest("saveCache",
    () => {
       saveCache();
       return;
@@ -679,68 +678,70 @@ function saveCache() {
 }
 
 //Parse
-connection.onRequest<tParseParam, tParseResult, {}> ({ method: "parse" }, (params: tParseParam) : Thenable<tParseResult> => {
-   var _rp = rp(
-      {
-         method: 'POST',
-         uri: url + '/ewam/api/rest/classOrModule/' + params.classname + '/parse',
-         body:
+connection.onRequest<tParseResult, {}>("parse",
+   (params: tParseParam) : Thenable<tParseResult> => {
+      var _rp = rp(
          {
-            "implem": {
-               "name": params.classname,
-               "ancestor": "",
-               "content": params.source
+            method: 'POST',
+            uri: url + '/ewam/api/rest/classOrModule/' + params.classname + '/parse',
+            body:
+            {
+               "implem": {
+                  "name": params.classname,
+                  "ancestor": "",
+                  "content": params.source
+               }
+            },
+            json: true
+         });
+
+      //  console.log(JSON.stringify(params));
+
+      return _rp.then((response) => {
+         let diagnostics: Diagnostic[] = [];
+
+         let result: tParseResult = { docUri: '', newSource: '' };
+
+         if ("errors" in response && response.errors.length > 0) {
+
+            let errors = response["errors"];
+
+            for (var index = 0; index < errors.length; index++) {
+               diagnostics.push({
+                  "severity": DiagnosticSeverity.Error,
+                  "range": {
+                     "start": { "line": errors[index].line, "character": 0 /*errors[index].offSet-1*/ },
+                     "end": { "line": errors[index].line + 1, "character": 0 /*errors[index].offSet*/ }
+                  },
+                  "message": errors[index].msg
+               });
             }
-         },
-         json: true
+
+            //Successfully parsed or not, send diagnostics anyway. 
+            connection.sendDiagnostics({ uri: params.uri, diagnostics });
+         } else {
+            //Successfully parsed or not, send diagnostics anyway.
+            connection.sendDiagnostics({ uri: params.uri, diagnostics });
+
+            if (params.notifyNewSource) {
+               updateMetaInfoForClass(params.classname, params.source);
+
+
+               result.docUri = params.uri;
+               result.newSource = response.content;
+               //  console.log("params: " + JSON.stringify(params));
+               //  console.log("result: " + JSON.stringify(result));
+            }
+         }
+
+         return result;
+      }).catch((rejectReason) => {
+         connection.window.showErrorMessage("Error: " + rejectReason);
       });
+   }
+);
 
-   //  console.log(JSON.stringify(params));
-
-   return _rp.then((response) => {
-      let diagnostics: Diagnostic[] = [];
-
-      let result: tParseResult = { docUri: '', newSource: '' };
-
-      if ("errors" in response && response.errors.length > 0) {
-
-         let errors = response["errors"];
-
-         for (var index = 0; index < errors.length; index++) {
-            diagnostics.push({
-               "severity": DiagnosticSeverity.Error,
-               "range": {
-                  "start": { "line": errors[index].line, "character": 0 /*errors[index].offSet-1*/ },
-                  "end": { "line": errors[index].line + 1, "character": 0 /*errors[index].offSet*/ }
-               },
-               "message": errors[index].msg
-            });
-         }
-
-         //Successfully parsed or not, send diagnostics anyway. 
-         connection.sendDiagnostics({ uri: params.uri, diagnostics });
-      } else {
-         //Successfully parsed or not, send diagnostics anyway.
-         connection.sendDiagnostics({ uri: params.uri, diagnostics });
-
-         if (params.notifyNewSource) {
-            updateMetaInfoForClass(params.classname, params.source);
-
-
-            result.docUri = params.uri;
-            result.newSource = response.content;
-            //  console.log("params: " + JSON.stringify(params));
-            //  console.log("result: " + JSON.stringify(result));
-         }
-      }
-
-      return result;
-   }).catch((rejectReason) => {
-      connection.window.showErrorMessage("Error: " + rejectReason);
-   });
-});
-
-connection.onRequest<tParseParam, tParseResult, {}> ({ method: "save" },
+connection.onRequest<tParseResult, {}> ("save",
    (params: tParseParam): Thenable<tParseResult> => {
       connection.console.log("Saving " + params.classname + " to tgv...");
 
@@ -857,28 +858,28 @@ function getMethodAtLine(className: string, line: number): string | Thenable<str
    }
 }
 
-connection.onRequest<tMethodAtLineParam, string, {}> ({ method: "getMethodAtLine" },
+connection.onRequest<string, {}> ("getMethodAtLine",
    (params: tMethodAtLineParam): string | Thenable<string> => {
       // connection.console.log("getMethodAtLine " + params.classname + " " + params.line);
       return getMethodAtLine(params.classname, params.line);
    }
 );
 
-connection.onRequest({ method: "LoadMetaInfo" },
+connection.onRequest("LoadMetaInfo",
    (params: { "moduleName": string }): string | Thenable<string> => {
       // connection.console.log("LoadMetaInfo " + params.moduleName);
       return updateMetaInfoForClass(params.moduleName, "").then(() => { return ""; });
    }
 );
 
-connection.onRequest({ method: "RefreshMetaInfo" },
+connection.onRequest("RefreshMetaInfo",
    (params: { "moduleName": string }): string | Thenable<string> => {
       // connection.console.log("server RefreshMetaInfo " + params.moduleName);
       return updateMetaInfoForClass(params.moduleName, "").then(() => { return ""; });
    }
 );
 
-connection.onRequest({ method: "DeleteMetaInfo" },
+connection.onRequest("DeleteMetaInfo",
    (params: { "moduleName": string }): string | Thenable<string> => {
       // connection.console.log("DeleteMetaInfo " + params.moduleName);
       delete classInfo[params.moduleName].metaInfo;
@@ -892,7 +893,7 @@ function getMetaInfoFor(className: string, uri: string): SymbolInformation[] {
    for (var index = 0; index < classInfo[className].metaInfo.variables.length; index++) {
       result.push({
          "name": classInfo[className].metaInfo.variables[index].name + " : " + classInfo[className].metaInfo.variables[index].variableType,
-         "kind": getSymbolKindFromEntityClass(classInfo[className].metaInfo.variables[index].entity.baseType),
+         "kind": <SymbolKind>getSymbolKindFromEntityClass(classInfo[className].metaInfo.variables[index].entity.baseType),
          "location": {
             "uri": uri,
             "range": {
@@ -924,7 +925,7 @@ function getMetaInfoFor(className: string, uri: string): SymbolInformation[] {
 
       result.push({
          "name": classInfo[className].metaInfo.methods[index].name + '(' + parameters + ')',
-         "kind": getSymbolKindFromEntityClass(classInfo[className].metaInfo.methods[index].entity.baseType),
+         "kind": <SymbolKind>getSymbolKindFromEntityClass(classInfo[className].metaInfo.methods[index].entity.baseType),
          "location": {
             "uri": uri,
             "range": {
@@ -945,7 +946,7 @@ function getMetaInfoFor(className: string, uri: string): SymbolInformation[] {
    for (var index = 0; index < classInfo[className].metaInfo.types.length; index++) {
       result.push({
          "name": classInfo[className].metaInfo.types[index].name,
-         "kind": getSymbolKindFromEntityClass(classInfo[className].metaInfo.types[index].entity.baseType),
+         "kind": <SymbolKind>getSymbolKindFromEntityClass(classInfo[className].metaInfo.types[index].entity.baseType),
          "location": {
             "uri": uri,
             "range": {
@@ -1394,7 +1395,7 @@ connection.onSignatureHelp(
          });
    });
 
-connection.onRequest({ method: "getModuleDocumentation" },
+connection.onRequest("getModuleDocumentation",
    (params: { "moduleName": string }): string | Thenable<string> => {
       if (classInfo == undefined) {
          classInfo = {};
@@ -1687,7 +1688,7 @@ connection.onWorkspaceSymbol(
 
                let symbol: SymbolInformation = {
                   "name": entity.name,
-                  "kind": getSymbolKindFromEntityClass(entity.baseType),
+                  "kind": <SymbolKind>getSymbolKindFromEntityClass(entity.baseType),
                   "containerName": entity.ownerName,
                   "location": {
                      "uri": "file:///" + fileName,
@@ -1843,7 +1844,7 @@ function getModulePath(moduleName: string) : string {
    return findModulePath(moduleName);
 }
 
-connection.onRequest<{ "moduleName": string }, string, {}> ({ method: "getModulePath" },
+connection.onRequest<string, {}> ("getModulePath",
    (params: { "moduleName": string }) : string => {
       return getModulePath(params.moduleName);
    });
@@ -1872,7 +1873,7 @@ function generatePackagesIndex () : Thenable<Boolean> {
    });
 }
 
-connection.onRequest<{}, Boolean, {}>({ method: "buildDependenciesRepo" },
+connection.onRequest<Boolean, {}>("buildDependenciesRepo",
    () => {
       return buildDependenciesRepo();
    });
@@ -1900,7 +1901,7 @@ function buildDependenciesRepo(): Thenable<Boolean> {
 
 }
 
-connection.onRequest<{}, Boolean, {}>({ method: "syncWorkspaceRepo" },
+connection.onRequest<Boolean, {}>("syncWorkspaceRepo",
    () => {
       return syncWorkspaceRepo();
    });
@@ -1928,7 +1929,7 @@ function syncWorkspaceRepo(): Thenable<Boolean> {
 
 }
 
-connection.onRequest<{ "moduleName": string }, number, {}> ({ method: "getLastknownImplemVersion" },
+connection.onRequest<number, {}> ("getLastknownImplemVersion",
    (param: { "moduleName": string }): number => {
       return getLastknownImplemVersion(param.moduleName);
    });

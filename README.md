@@ -244,6 +244,9 @@ endProc
 
 # Changelog
 
+## Alpha 0.3.6 - *Deliver on January 28, 2019*
+   - [x] Code adaptations to make plugin work well with new versions of VSCode.
+
 ## Alpha 0.3.5 - *Deliver on July 06, 2017*
    > /!\ Major API change : don't update unless WxWamAPI bundles have been installed in your environment. /!\
    - [x] Added .gitignore in Dev

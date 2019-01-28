@@ -2,17 +2,15 @@
 // Import the module and reference it with the alias vscode in your code below
 'use strict';
 
+import { languages, Diagnostic, DiagnosticSeverity, TextDocumentContentProvider } from 'vscode';
+import { Message, RequestHandler, NotificationHandler, RequestType, NotificationType, Trace, Event } from 'vscode-jsonrpc';
 import { LanguageClient, LanguageClientOptions, ErrorAction, CloseAction, SettingMonitor, ServerOptions, TransportKind }
    from 'vscode-languageclient';
 
-import { Message, RequestHandler, NotificationHandler, RequestType, NotificationType, Trace, Event } from 'vscode-jsonrpc';
-
-import { languages, Diagnostic, DiagnosticSeverity, TextDocumentContentProvider } from 'vscode';
-
-import * as vscode from 'vscode';
 import * as axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
 
 declare var require: any;
 
@@ -35,7 +33,6 @@ let languageClient: LanguageClient;
 let saving: boolean = false;
 let parsePlanned: boolean = false;
 let extensionContext: vscode.ExtensionContext;
-
 let fileWatcher: vscode.FileSystemWatcher;
 
 // Settings : 
@@ -143,7 +140,7 @@ function GetClassNameFromPath(path : string) : string {
 
 function LoadMetaInfo(moduleName: string) {
    return languageClient.sendRequest(
-      { method: "LoadMetaInfo" },
+      "LoadMetaInfo",
       { params: { "moduleName": moduleName } }
    )
       .then(
@@ -154,7 +151,7 @@ function LoadMetaInfo(moduleName: string) {
 function RefreshMetaInfo(moduleName: string) {
    // console.log("client RefreshMetaInfo " + moduleName);
    return languageClient.sendRequest(
-      { method: "RefreshMetaInfo" },
+      "RefreshMetaInfo",
       { moduleName: moduleName }
    )
       .then(
@@ -164,7 +161,7 @@ function RefreshMetaInfo(moduleName: string) {
 
 function DeleteMetaInfo(moduleName: string) {
    return languageClient.sendRequest(
-      { method: "DeleteMetaInfo" },
+      "DeleteMetaInfo",
       { params: { "moduleName": moduleName } }
    )
       .then(
@@ -235,13 +232,13 @@ function SyncAll() {
 }
 
 function getMethodAtLine(line: number, doc?: vscode.TextDocument): Thenable<string> {
-
+   
    if (!doc) {
       doc = vscode.window.activeTextEditor.document;
    }
 
    return languageClient.sendRequest(
-      { method: "getMethodAtLine" },
+      "getMethodAtLine",
       {
          "classname": getOpenClassName(doc),
          "line": line
@@ -362,7 +359,7 @@ function buildDependenciesRepo(): any {
    vscode.window.showInformationMessage(
       "You will be notified when loading is finished.");
 
-   return languageClient.sendRequest({ method: "buildDependenciesRepo" }, {})
+   return languageClient.sendRequest("buildDependenciesRepo", {})
       .then((params: any) => {
          vscode.window.showInformationMessage("Finished loading dependencies.");
       });
@@ -373,7 +370,7 @@ function syncWorkspaceRepo() {
       "Synchronizing workspace, this may take a few minutes, please be patient...");
    vscode.window.showInformationMessage("You will be notified when loading is finished.");
 
-   languageClient.sendRequest({ method: "syncWorkspaceRepo" }, {})
+   languageClient.sendRequest("syncWorkspaceRepo", {})
       .then((params: any) => {
          vscode.window.showInformationMessage("Finished synchronizing workspace.");
       });
@@ -477,7 +474,7 @@ function openClass(name: string) {
    axios.default.get(config.get('url') + '/ewam/api/rest/classOrModule/' + name)
       .then((response) => {
          languageClient.sendRequest(
-            { method: "getModulePath" },
+            "getModulePath",
             { "moduleName": name }
          ).then((modulePath: string) => {
             let fileName: string = modulePath + "\\" + name + EXTENSION;
@@ -521,7 +518,7 @@ function setReadWrite(fileName: string) {
 
 function loadCache() {
    return languageClient.sendRequest(
-      { method: "loadCache" },
+      "loadCache",
       { param: {} }
    )
       .then(
@@ -531,7 +528,7 @@ function loadCache() {
 
 function saveCache() {
    return languageClient.sendRequest(
-      { method: "saveCache" },
+      "saveCache",
       { param: {} }
    )
       .then(
@@ -543,7 +540,7 @@ function getLastknownImplemVersion(className: string): Thenable<number> {
    let result: number = -1;
 
    return languageClient.sendRequest(
-      { method: "getLastknownImplemVersion" },
+      "getLastknownImplemVersion",
       { "moduleName": className }
    ).then((versionNumber: number) => {
       return versionNumber;
@@ -624,14 +621,14 @@ function checkBeforeSave(doc?: vscode.TextDocument): Thenable<any> {
       if (checkedOut) {
 
          return languageClient.sendRequest(
-            { method: "getModulePath" },
+            "getModulePath",
             { "moduleName": className }
          ).then((modulePath: string) => {
 
             let fileName = modulePath + "\\" + className + EXTENSION;
 
             // get last known implem version for this class
-            return languageClient.sendRequest({ method: "getLastknownImplemVersion" }, { "moduleName": className })
+            return languageClient.sendRequest("getLastknownImplemVersion", { "moduleName": className })
                .then((lastKnownImplem: number) => {
 
                   // Retrieve status to get current implem
@@ -686,7 +683,7 @@ function checkOutClass(name: string) {
       .then(function (response) {
          refreshUI();
          languageClient.sendRequest(
-            { method: "getModulePath" },
+            "getModulePath",
             { "moduleName": name }
          ).then((modulePath: string) => {
             setReadWrite(modulePath + "\\" + name + ".god");
@@ -739,7 +736,7 @@ function parse(notifyNewSource: Boolean = false, doc?: vscode.TextDocument) {
    }
 
    languageClient.sendRequest(
-      { method: "parse" },
+      "parse",
       {
          "classname": getOpenClassName(doc),
          "source": doc.getText(),
@@ -801,7 +798,7 @@ function save(notifyNewSource: Boolean = false, doc?: vscode.TextDocument) {
    checkBeforeSave(doc).then(() => {
 
       languageClient.sendRequest(
-         { method: "save" },
+         "save",
          {
             "classname": moduleName,
             "source": source,
@@ -921,7 +918,7 @@ function showModuleDocumentation(moduleName: string): Thenable<any> {
 
 function getModuleDocumentation(moduleName: string): string | Thenable<string> {
    return languageClient.sendRequest(
-      { "method": "getModuleDocumentation" },
+      "getModuleDocumentation",
       { "moduleName": moduleName }
    );
 }
@@ -1290,7 +1287,7 @@ export function activate(context: vscode.ExtensionContext) {
    // The server is implemented in node
    let serverModule = context.asAbsolutePath(path.join('server', 'server.js'));
    // The debug options for the server
-   let debugOptions = { execArgv: ["--nolazy", "--debug=6004"] };
+   let debugOptions = { execArgv: ["--nolazy", "--debug=6009"] };
 
    // If the extension is launch in debug mode the debug server options are use
    // Otherwise the run options are used
@@ -1416,11 +1413,11 @@ export function activate(context: vscode.ExtensionContext) {
        }
    );*/
 
-   languageClient.onRequest({ method: "getRootPath" },
+   /*languageClient.onRequest<any, null>("getRootPath",
       (params: any): string => {
          return vscode.workspace.rootPath;
       }
-   );
+   );*/
 
    /*languageClient.onNotification({method: "showNotification"}, 
       (params : {type:string, message:string}) => {
@@ -1435,7 +1432,7 @@ export function activate(context: vscode.ExtensionContext) {
    );*/
 
    let disposable = languageClient.start();
-
+   
    // Push the disposable to the context's subscriptions so that the 
    // client can be deactivated on extension deactivation
    context.subscriptions.push(disposable);
